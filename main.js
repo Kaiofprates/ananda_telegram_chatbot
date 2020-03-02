@@ -1,6 +1,7 @@
 const {getJob} = require('./src/middlewares/linkedin/jobs');
 const {mandaNude} = require('./src/middlewares/nude/sendNude');
 const {bot}  = require('./src/servers/server');
+const {getWhois}  = require('./src/middlewares/whois/whois');
 const axios = require('axios');
 
 
@@ -13,6 +14,18 @@ bot.onText(/\/vagas (.+)/, async (msg, match) => {
   const jobs  = await getJob(resp)
   bot.sendMessage(chatId,jobs);
 });
+
+
+// --------------- busca por informações de sites--------
+
+bot.onText(/\/whois (.+)/, async (msg, match) => {
+  const chatId = msg.chat.id;
+  const resp = match[1]; // the captured "whatever"
+  const data  = await getWhois(resp)
+  bot.sendMessage(chatId,data);
+});
+
+
 
 
 //------------------
