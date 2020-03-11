@@ -3,10 +3,10 @@ const {mandaNude} = require('./src/middlewares/nude/sendNude');
 const {bot}  = require('./src/servers/server');
 const {getWhois}  = require('./src/middlewares/whois/whois');
 const axios = require('axios');
-
+const { sendMessage, getSessionId } = require('./src/servers/assistent');
+const { getCache, setCache } = require('./src/servers/redis');
 
 let session_id  = false; 
-
 
 const quotes = [
 "Leia ao menos 5 páginas de qualquer coisa por dia.",
@@ -35,7 +35,6 @@ const quotes = [
 ]
 
 
-
 // ---------------- busca por vagas --------------------
 bot.onText(/\/vagas (.+)/, async (msg, match) => {
   const chatId = msg.chat.id;
@@ -43,7 +42,6 @@ bot.onText(/\/vagas (.+)/, async (msg, match) => {
   const jobs  = await getJob(resp)
   bot.sendMessage(chatId,jobs);
 });
-
 
 // --------------- busca por informações de sites--------
 
@@ -53,9 +51,6 @@ bot.onText(/\/whois (.+)/, async (msg, match) => {
   const data  = await getWhois(resp)
   bot.sendMessage(chatId,data);
 });
-
-
-
 
 //------------------
 bot.on('message', async (msg) => {
@@ -73,39 +68,29 @@ if(msg.text == "#mandanude"){
     var item = quotes[Math.floor(Math.random() * quotes.length)]
     bot.sendMessage(chatId,item )
 
-}else if(msg.text == "config"){
+}else if(msg.text.toLowerCase() == "config"){
+  
+  try{  
+    
+    let id = await getSessionId();
+    console.log(id);
+    setCache(chatId,id.result.session_id);
+    session_id = true
 
-  axios.get('http://localhost:3000/api/session').then(function (response) {
-    // handle success
-    console.log(response.data);
-    session_id = response.data.result.session_id; 
-    if(session_id){
-      bot.sendMessage(chatId,"Sucess!");
-    }
-
-  }).catch(function (error) {
-    // handle error
-    console.log(error);
-  });
+  }catch(err){
+    console.log(err)
+  }
 
 }else if(msg.text && session_id){
 
-axios.post('http://localhost:3000/api/message', { session_id, "input": {
-                         "message_type": "text",
-                          "text": msg.text }}).then(function (response) {
-    const res = response.data.result.output.generic[0].text
-    res ? bot.sendMessage(chatId,res) : console.error('no data');
-  })
-  .catch(function (error) {
-    console.log(error);
-  });
-
-
-}
-
-
-
-});
-
-
+   try{
+     let id  = await getCache(chatId);
+     if(id){
+      let response  = await sendMessage(msg.text,id);
+      bot.sendMessage(chatId,response);
+     }
+   }catch(err){
+     console.log(err)
+   }
+}});
 

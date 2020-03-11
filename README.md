@@ -1,7 +1,7 @@
 ## Ananda Telegram Chatbot
 > Telegram chatbot using watson artificial intelligence.
 
-A Watson conversation project must be configured previously, as we use the endpoints provided by this api [Assistant-simple](https://github.com/watson-developer-cloud/assistant-simple/blob/master/app.js)
+A Watson conversation project must be configured previously.
 
 - create an .env file based on envExample
 
